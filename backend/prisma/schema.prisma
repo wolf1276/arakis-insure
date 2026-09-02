@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  externalId        String?  @unique
+  name              String
+  phone             String   @unique
+  language          String   @default("en")
+  kycStatus         String   @default("PENDING")
+  accountReference  String?
+  stellarAccount    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  nominees Nominee[]
+  policies Policy[]
+}
+
+model Nominee {
+  id               String   @id @default(cuid())
+  userId           String
+  name             String
+  phone            String
+  relationship     String
+  accountReference String?
+  verified         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  policies Policy[]
+}
+
+enum PolicyStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CANCELLED
+}
+
+model Policy {
+  id                String       @id @default(cuid())
+  policyNumber      String       @unique
+  userId            String
+  nomineeId         String?
+  coverageAmount    Decimal
+  premium           Decimal
+  disasterCoverage  Boolean      @default(false)
+  accidentCoverage  Boolean      @default(false)
+  deathCoverage     Boolean      @default(false)
+  startDate         DateTime
+  endDate           DateTime
+  status            PolicyStatus @default(DRAFT)
+  stellarReference  String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  nominee Nominee? @relation(fields: [nomineeId], references: [id])
+  claims  Claim[]
+  payouts Payout[]
+}
+
+enum ClaimType {
+  ACCIDENT
+  DEATH
+  FLOOD
+  DROUGHT
+}
+
+enum ClaimStatus {
+  SUBMITTED
+  VERIFYING
+  PRELIMINARILY_VERIFIED
+  ADVANCE_ELIGIBLE
+  ADVANCE_PAID
+  FULL_VERIFICATION
+  APPROVED
+  REJECTED
+  FRAUD
+  FINAL_PAID
+}
+
+model Claim {
+  id                    String      @id @default(cuid())
+  claimNumber           String      @unique
+  policyId              String
+  type                  ClaimType
+  description           String?
+  requestedAmount       Decimal
+  advanceAmount         Decimal?
+  finalAmount           Decimal?
+  status                ClaimStatus @default(SUBMITTED)
+  evidenceHash          String?
+  oracleAttestation     String?
+  beneficiaryReference  String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  resolvedAt            DateTime?
+
+  policy        Policy         @relation(fields: [policyId], references: [id])
+  verifications Verification[]
+  payouts       Payout[]
+}
+
+enum VerificationSource {
+  HOSPITAL
+  POLICE
+  CIVIL_REGISTRY
+}
+
+model Verification {
+  id            String             @id @default(cuid())
+  claimId       String
+  source        VerificationSource
+  verified      Boolean
+  referenceHash String?
+  responseHash  String?
+  metadata      Json?
+  verifiedAt    DateTime?
+  createdAt     DateTime           @default(now())
+
+  claim Claim @relation(fields: [claimId], references: [id])
+}
+
+model DisasterEvent {
+  id                     String    @id @default(cuid())
+  type                   String
+  location               String
+  measurement            Decimal
+  threshold              Decimal
+  secondaryConfirmation  Boolean
+  verified               Boolean   @default(false)
+  oracleAttestation      String?
+  createdAt              DateTime  @default(now())
+  triggeredAt            DateTime?
+
+  payouts Payout[]
+}
+
+model Treasury {
+  id               String   @id @default(cuid())
+  provider         String
+  stellarAddress   String
+  asset            String
+  availableBalance Decimal
+  reservedBalance  Decimal  @default(0)
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum FundingStatus {
+  PENDING
+  REQUESTED
+  FUNDED
+  FAILED
+}
+
+model FundingTransaction {
+  id                 String        @id @default(cuid())
+  provider           String
+  externalReference  String?
+  amount             Decimal
+  asset              String
+  status             FundingStatus @default(PENDING)
+  metadata           Json?
+  createdAt          DateTime      @default(now())
+  completedAt        DateTime?
+
+  payouts Payout[]
+}
+
+enum PayoutType {
+  ADVANCE
+  FINAL
+  PARAMETRIC
+}
+
+enum PayoutStatus {
+  PENDING
+  FUNDING
+  FUNDED
+  SUBMITTING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+}
+
+model Payout {
+  id                       String       @id @default(cuid())
+  claimId                  String?
+  disasterEventId          String?
+  policyId                 String?
+  type                     PayoutType
+  amount                   Decimal
+  asset                    String       @default("XLM")
+  beneficiaryReference     String?
+  fundingTransactionId     String?
+  stellarTransactionHash   String?
+  status                   PayoutStatus @default(PENDING)
+  createdAt                DateTime     @default(now())
+  completedAt              DateTime?
+
+  claim              Claim?              @relation(fields: [claimId], references: [id])
+  disasterEvent      DisasterEvent?      @relation(fields: [disasterEventId], references: [id])
+  policy             Policy?             @relation(fields: [policyId], references: [id])
+  fundingTransaction FundingTransaction? @relation(fields: [fundingTransactionId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  actor      String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
