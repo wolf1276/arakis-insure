@@ -3,21 +3,33 @@ import { AppError } from '../types/errors.js';
 
 export async function errorHandler(app: FastifyInstance) {
   app.setErrorHandler((error: FastifyError, _request, reply) => {
+    let appErr: AppError | null = null;
+
     if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({
+      appErr = error;
+    } else if (error.cause instanceof AppError) {
+      appErr = error.cause;
+    } else if (error.cause && typeof error.cause === 'object' && 'statusCode' in error.cause && 'code' in error.cause) {
+      appErr = error.cause as AppError;
+    }
+
+    if (appErr) {
+      return reply.status(appErr.statusCode).send({
         success: false,
         error: {
-          code: error.code,
-          message: error.message,
+          code: appErr.code,
+          message: appErr.message,
         },
       });
     }
 
-    if (error.validation) {
-      return reply.status(400).send({
+    const statusCode = error.statusCode ?? 500;
+
+    if (statusCode >= 400 && statusCode < 500) {
+      return reply.status(statusCode).send({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
+          code: error.code ?? 'CLIENT_ERROR',
           message: error.message,
         },
       });

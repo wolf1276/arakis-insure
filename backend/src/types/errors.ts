@@ -15,7 +15,11 @@ export type ErrorCode =
   | 'INVALID_DISASTER_EVENT'
   | 'INVALID_TRANSITION'
   | 'ADVANCE_ALREADY_PAID'
-  | 'NOMINEE_REQUIRED';
+  | 'NOMINEE_REQUIRED'
+  | 'EVENT_NOT_FOUND'
+  | 'EVENT_NOT_VERIFIED'
+  | 'NO_DEMO_USER'
+  | 'NO_DEMO_POLICY';
 
 export class AppError extends Error {
   constructor(
