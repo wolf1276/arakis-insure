@@ -36,6 +36,8 @@ model Nominee {
 
   user     User     @relation(fields: [userId], references: [id])
   policies Policy[]
+
+  @@index([userId])
 }
 
 enum PolicyStatus {
@@ -67,6 +69,9 @@ model Policy {
   nominee Nominee? @relation(fields: [nomineeId], references: [id])
   claims  Claim[]
   payouts Payout[]
+
+  @@index([userId])
+  @@index([status])
 }
 
 enum ClaimType {
@@ -109,6 +114,9 @@ model Claim {
   policy        Policy         @relation(fields: [policyId], references: [id])
   verifications Verification[]
   payouts       Payout[]
+
+  @@index([policyId])
+  @@index([status])
 }
 
 enum VerificationSource {
@@ -129,6 +137,8 @@ model Verification {
   createdAt     DateTime           @default(now())
 
   claim Claim @relation(fields: [claimId], references: [id])
+
+  @@index([claimId])
 }
 
 model DisasterEvent {
@@ -177,6 +187,8 @@ model FundingTransaction {
   completedAt        DateTime?
 
   payouts Payout[]
+
+  @@index([provider, status])
 }
 
 enum PayoutType {
@@ -214,6 +226,13 @@ model Payout {
   disasterEvent      DisasterEvent?      @relation(fields: [disasterEventId], references: [id])
   policy             Policy?             @relation(fields: [policyId], references: [id])
   fundingTransaction FundingTransaction? @relation(fields: [fundingTransactionId], references: [id])
+
+  @@index([claimId])
+  @@index([disasterEventId])
+  @@index([policyId])
+  @@index([status])
+  @@unique([claimId, type])
+  @@unique([disasterEventId, policyId])
 }
 
 model AuditLog {
@@ -224,4 +243,6 @@ model AuditLog {
   actor      String?
   metadata   Json?
   createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
 }
