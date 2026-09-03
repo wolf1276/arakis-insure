@@ -8,9 +8,13 @@ import {
 } from '../services/disaster.service.js';
 import { fundPayout } from '../services/funding.service.js';
 import { executeStellarPayout } from '../services/stellar-payout.service.js';
+import { authenticate } from '../middleware/auth.js';
+import { authorize } from '../middleware/rbac.js';
 
 export async function disasterRoutes(app: FastifyInstance) {
-  app.post('/api/disasters/simulate', async (request, reply) => {
+  app.post('/api/disasters/simulate', {
+    preHandler: [authenticate, authorize('INSURER', 'ADMIN')],
+  }, async (request, reply) => {
     const parsed = simulateDisasterSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({
@@ -28,7 +32,9 @@ export async function disasterRoutes(app: FastifyInstance) {
     return reply.status(201).send({ success: true, data: result });
   });
 
-  app.post('/api/disasters/:eventId/trigger', async (request, reply) => {
+  app.post('/api/disasters/:eventId/trigger', {
+    preHandler: [authenticate, authorize('INSURER', 'ADMIN')],
+  }, async (request, reply) => {
     const { eventId } = request.params as { eventId: string };
 
     const result = await createParametricPayouts(eventId);

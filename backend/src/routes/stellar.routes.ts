@@ -1,9 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import * as stellarPayoutService from '../services/stellar-payout.service.js';
 import { getTransactionStatus } from '../stellar/transactions.js';
+import { authenticate } from '../middleware/auth.js';
+import { authorize } from '../middleware/rbac.js';
 
 export async function stellarRoutes(app: FastifyInstance) {
-  app.post('/api/stellar/payout/:payoutId', async (request) => {
+  app.post('/api/stellar/payout/:payoutId', {
+    preHandler: [authenticate, authorize('INSURER', 'ADMIN')],
+  }, async (request) => {
     const { payoutId } = request.params as { payoutId: string };
     const result = await stellarPayoutService.executeStellarPayout(payoutId);
     return { success: true, data: result };

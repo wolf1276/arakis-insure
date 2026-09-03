@@ -18,7 +18,7 @@ export async function demoRoutes(app: FastifyInstance) {
   app.post('/api/demo/accident', async (_request, reply) => {
     const steps: Record<string, unknown> = {};
 
-    const user = await prisma.user.findFirst({ where: { name: { contains: 'Demo' } } });
+    const user = await prisma.user.findFirst({ where: { phone: '+919999900001' } });
     if (!user) throw new AppError('NO_DEMO_USER', 'Run seed script first', 400);
 
     const policy = await prisma.policy.findFirst({

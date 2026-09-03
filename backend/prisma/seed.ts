@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import { pbkdf2Sync, randomBytes } from 'node:crypto';
 import { createKeypair, fundTestnetAccountWithRetry } from '../src/stellar/client.js';
 
 const prisma = new PrismaClient();
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+const DEMO_PASSWORD = 'demo1234';
 
 async function main() {
   const treasuryCount = await prisma.treasury.count();
@@ -32,6 +41,21 @@ async function main() {
       language: 'hi',
       kycStatus: 'VERIFIED',
       stellarAccount: farmerKeypair.publicKey(),
+      passwordHash: hashPassword(DEMO_PASSWORD),
+      role: 'USER',
+    },
+  });
+
+  const opsUser = await prisma.user.upsert({
+    where: { phone: '+919999900099' },
+    update: {},
+    create: {
+      name: 'Ops Admin',
+      phone: '+919999900099',
+      language: 'en',
+      kycStatus: 'VERIFIED',
+      passwordHash: hashPassword(DEMO_PASSWORD),
+      role: 'ADMIN',
     },
   });
 
@@ -68,6 +92,8 @@ async function main() {
   });
 
   console.log('Seeded demo user, nominee, policy:', { userId: user.id, policyId: policy.id });
+  console.log('Demo login: +919999900001 / demo1234 (beneficiary)');
+  console.log('Ops login: +919999900099 / demo1234 (admin), opsUserId:', opsUser.id);
 }
 
 main()
