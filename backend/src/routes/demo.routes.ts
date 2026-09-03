@@ -10,6 +10,7 @@ import {
 import { fundPayout } from '../services/funding.service.js';
 import { executeStellarPayout } from '../services/stellar-payout.service.js';
 import { simulateDisaster, createParametricPayouts } from '../services/disaster.service.js';
+import { notifyClaimSubmitted, notifyPayoutCompleted, notifyDisasterAlert } from '../notifications/notification.service.js';
 import { AppError } from '../types/errors.js';
 import { config } from '../config.js';
 
@@ -40,6 +41,8 @@ export async function demoRoutes(app: FastifyInstance) {
     });
     steps.claimId = claim.id;
 
+    await notifyClaimSubmitted(user.id, claim.claimNumber, 'ACCIDENT');
+
     const verification = await runVerification(claim.id);
     steps.verification = verification;
 
@@ -69,6 +72,8 @@ export async function demoRoutes(app: FastifyInstance) {
 
     const stellarFinal = await executeStellarPayout(finalPayout.id);
     steps.stellarFinal = stellarFinal;
+
+    await notifyPayoutCompleted(user.id, claim.claimNumber, Number(approved.finalAmount), stellarFinal.stellarTransactionHash);
 
     await prisma.auditLog.create({
       data: {
@@ -123,6 +128,15 @@ export async function demoRoutes(app: FastifyInstance) {
     const event = simulated;
 
     const result = await createParametricPayouts(event.id);
+
+    const usersWithDisasterCoverage = await prisma.policy.findMany({
+      where: { status: 'ACTIVE', disasterCoverage: true },
+      select: { userId: true },
+    });
+    const uniqueUserIds = [...new Set(usersWithDisasterCoverage.map((p) => p.userId))];
+    for (const uid of uniqueUserIds) {
+      await notifyDisasterAlert(uid, 'FLOOD', 'Village-A', 412);
+    }
 
     const transactions: unknown[] = [];
 

@@ -19,7 +19,12 @@ export type ErrorCode =
   | 'EVENT_NOT_FOUND'
   | 'EVENT_NOT_VERIFIED'
   | 'NO_DEMO_USER'
-  | 'NO_DEMO_POLICY';
+  | 'NO_DEMO_POLICY'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'INVALID_CREDENTIALS'
+  | 'USER_EXISTS'
+  | 'PASSWORD_REQUIRED';
 
 export class AppError extends Error {
   constructor(

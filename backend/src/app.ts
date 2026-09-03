@@ -1,4 +1,8 @@
 import Fastify from 'fastify';
+import fastifyJwt from '@fastify/jwt';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
+import { config } from './config.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { userRoutes } from './routes/users.routes.js';
 import { policyRoutes } from './routes/policies.routes.js';
@@ -8,10 +12,42 @@ import { fundingRoutes } from './routes/funding.routes.js';
 import { stellarRoutes } from './routes/stellar.routes.js';
 import { disasterRoutes } from './routes/disaster.routes.js';
 import { demoRoutes } from './routes/demo.routes.js';
+import { dashboardRoutes } from './routes/dashboard.routes.js';
+import { authRoutes } from './routes/auth.routes.js';
 import { AppError } from './types/errors.js';
 
 export function buildApp() {
   const app = Fastify({ logger: false });
+
+  app.register(fastifyJwt, { secret: config.jwtSecret });
+
+  app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'SurakshChain API',
+        description: 'Micro-insurance platform for farmers and rural communities',
+        version: '0.1.0',
+      },
+      servers: [{ url: 'http://localhost:3000' }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+    },
+  });
+
+  app.register(swaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: false,
+    },
+  });
 
   app.setErrorHandler((error, _request, reply) => {
     let appErr: AppError | null = null;
@@ -60,6 +96,8 @@ export function buildApp() {
   app.register(stellarRoutes);
   app.register(disasterRoutes);
   app.register(demoRoutes);
+  app.register(dashboardRoutes);
+  app.register(authRoutes);
 
   return app;
 }

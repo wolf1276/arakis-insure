@@ -7,6 +7,7 @@ export async function executeStellarPayout(payoutId: string) {
     where: { id: payoutId },
     include: {
       claim: { include: { policy: { include: { nominee: true, user: true } } } },
+      policy: { include: { nominee: true, user: true } },
     },
   });
 
@@ -20,12 +21,14 @@ export async function executeStellarPayout(payoutId: string) {
     throw new AppError('INVALID_TRANSITION', 'Payout must be FUNDED before Stellar settlement', 400);
   }
 
+  const policy = payout.claim?.policy ?? payout.policy;
+
   let destination: string | null = null;
 
-  if (payout.claim?.policy?.nominee?.accountReference) {
-    destination = payout.claim.policy.nominee.accountReference;
-  } else if (payout.claim?.policy?.user?.stellarAccount) {
-    destination = payout.claim.policy.user.stellarAccount;
+  if (policy?.nominee?.accountReference) {
+    destination = policy.nominee.accountReference;
+  } else if (policy?.user?.stellarAccount) {
+    destination = policy.user.stellarAccount;
   }
 
   if (!destination) {
