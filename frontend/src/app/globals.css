@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f4;
-  --surface: #ffffff;
-  --foreground: #10241f;
-  --muted: #5b6b66;
-  --border: #e4e2da;
-  --brand: #0f4c3a;
-  --brand-soft: #e6efe9;
-  --accent: #b8874a;
+  /* Muchineko Theme */
+  --background: #F6F4EE;
+  --surface: #E6E1D7;
+  --foreground: #111111;
+  --muted: #777777;
+  --border: #BEB8AD;
+  --brand: #333333;
+  --brand-soft: #BEB8AD;
+  --accent: #111111;
 }
 
 @theme inline {

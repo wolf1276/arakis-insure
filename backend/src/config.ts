@@ -31,4 +31,6 @@ export const config = {
   },
 
   mockMode: (process.env.MOCK_MODE ?? 'true') === 'true',
+
+  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3001',
 };

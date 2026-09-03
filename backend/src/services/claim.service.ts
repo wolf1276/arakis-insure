@@ -2,6 +2,7 @@ import { prisma } from '../database/prisma.js';
 import { Prisma } from '@prisma/client';
 import { AppError, notFound } from '../types/errors.js';
 import { z } from 'zod';
+import { runVerification } from '../oracle/verification-engine.js';
 
 export const createClaimSchema = z.object({
   policyId: z.string(),
@@ -43,7 +44,7 @@ export async function createClaim(input: z.infer<typeof createClaimSchema>) {
 
   const claimNumber = `CLM-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-  return prisma.claim.create({
+  const claim = await prisma.claim.create({
     data: {
       claimNumber,
       policyId: input.policyId,
@@ -53,6 +54,11 @@ export async function createClaim(input: z.infer<typeof createClaimSchema>) {
       status: 'SUBMITTED',
     },
   });
+
+  await transitionClaim(claim.id, 'VERIFYING');
+  await runVerification(claim.id);
+
+  return getClaim(claim.id);
 }
 
 export async function getClaim(id: string) {

@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildQuery } from "./client";
 import type { DashboardStats, Claim, Payout, DisasterEvent, TreasuryBalance } from "@/types/models";
 
 export function getStats() {
@@ -6,13 +6,11 @@ export function getStats() {
 }
 
 export function getClaimsSummary(params?: { status?: string; type?: string }) {
-  const qs = new URLSearchParams(params as Record<string, string>).toString();
-  return apiRequest<Claim[]>(`/api/dashboard/claims${qs ? `?${qs}` : ""}`);
+  return apiRequest<Claim[]>(`/api/dashboard/claims${buildQuery(params)}`);
 }
 
 export function getPayoutsSummary(params?: { status?: string; type?: string }) {
-  const qs = new URLSearchParams(params as Record<string, string>).toString();
-  return apiRequest<Payout[]>(`/api/dashboard/payouts${qs ? `?${qs}` : ""}`);
+  return apiRequest<Payout[]>(`/api/dashboard/payouts${buildQuery(params)}`);
 }
 
 export function getDisastersSummary() {

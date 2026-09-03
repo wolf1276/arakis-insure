@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildQuery } from "./client";
 import type { Claim, ClaimType, Verification, VerificationSource, Payout, PayoutType } from "@/types/models";
 
 export function createClaim(input: { policyId: string; type: ClaimType; description?: string; requestedAmount: number }) {
@@ -6,8 +6,7 @@ export function createClaim(input: { policyId: string; type: ClaimType; descript
 }
 
 export function listClaims(params?: { status?: string; type?: string }) {
-  const qs = new URLSearchParams(params as Record<string, string>).toString();
-  return apiRequest<Claim[]>(`/api/claims${qs ? `?${qs}` : ""}`);
+  return apiRequest<Claim[]>(`/api/claims${buildQuery(params)}`);
 }
 
 export function getClaim(id: string) {

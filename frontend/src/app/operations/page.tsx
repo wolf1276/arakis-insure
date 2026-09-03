@@ -245,7 +245,8 @@ function TreasuryPanel() {
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead>
               <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
-                <th className="py-2 pr-4">Payout</th>
+                <th className="py-2 pr-4">Transaction</th>
+                <th className="py-2 pr-4">Amount</th>
                 <th className="py-2 pr-4">Provider</th>
                 <th className="py-2 pr-4">Status</th>
                 <th className="py-2 pr-4">Date</th>
@@ -254,7 +255,8 @@ function TreasuryPanel() {
             <tbody>
               {txns.data.map((t) => (
                 <tr key={t.id} className="border-b border-line/60">
-                  <td className="py-2 pr-4 font-mono text-xs">{t.payoutId.slice(0, 10)}…</td>
+                  <td className="py-2 pr-4 font-mono text-xs">{t.id.slice(0, 10)}…</td>
+                  <td className="py-2 pr-4">₹{Number(t.amount).toLocaleString()}</td>
                   <td className="py-2 pr-4">{t.provider}</td>
                   <td className="py-2 pr-4">{t.status}</td>
                   <td className="py-2 pr-4 text-muted">{formatDate(t.createdAt)}</td>

@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import fastifyCors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -19,6 +20,7 @@ import { AppError } from './types/errors.js';
 export function buildApp() {
   const app = Fastify({ logger: false });
 
+  app.register(fastifyCors, { origin: config.corsOrigin.split(',') });
   app.register(fastifyJwt, { secret: config.jwtSecret });
 
   app.register(swagger, {

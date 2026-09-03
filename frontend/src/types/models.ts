@@ -125,11 +125,13 @@ export interface TreasuryBalance {
 
 export interface FundingTransaction {
   id: string;
-  payoutId: string;
-  status: string;
   provider: string;
-  fundingTransactionId?: string | null;
+  externalReference: string | null;
+  amount: string;
+  asset: string;
+  status: string;
   createdAt: string;
+  completedAt: string | null;
 }
 
 export interface DashboardStats {

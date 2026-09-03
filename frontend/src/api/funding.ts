@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildQuery } from "./client";
 import type { TreasuryBalance, FundingTransaction } from "@/types/models";
 
 export function getTreasuryBalance() {
@@ -13,8 +13,7 @@ export function fundPayout(payoutId: string) {
 }
 
 export function listFundingTransactions(params?: { status?: string; provider?: string }) {
-  const qs = new URLSearchParams(params as Record<string, string>).toString();
-  return apiRequest<FundingTransaction[]>(`/api/funding/transactions${qs ? `?${qs}` : ""}`);
+  return apiRequest<FundingTransaction[]>(`/api/funding/transactions${buildQuery(params)}`);
 }
 
 export function getFundingTransaction(id: string) {
